@@ -9,7 +9,8 @@
 #define RTK_ZHD_SYNC2 0x33
 
 #define RTK_ZHD_UNLOGALL		"unlogall com1\r\n"
-#define	RTK_ZHD_CUSTOM_PROTOCOL		"zhd log com1 gpsdata ontime 0.2\r\n"
+#define	RTK_ZHD_CUSTOM_5HZ		"zhd log com1 gpsdata ontime 0.2\r\n"
+#define	RTK_ZHD_CUSTOM_10HZ		"zhd log com1 gpsdata ontime 0.1\r\n"
 #define RTK_ZHD_SAVECONFIG		"saveconfig\r\n"
 
 #define RTK_ZHD_BAUDRATE 115200
@@ -41,13 +42,13 @@ typedef struct {
 	double altitude;                       //8 bytes deviation 40
 	float eph;                             //4 bytes deviation 48
 	float epv;                             //4 bytes deviation 52
-	float vel_earth;                       //4 bytes deviation 56
+	float vel_ground_m_s;                       //4 bytes deviation 56
 	float angle_tracktrue;                 //4 bytes deviation 60
 	float angle_heading;                   //4 bytes deviation 64
 	float angle_pitch;                     //4 bytes deviation 68
-	double vel_n;                          //8 bytes deviation 72
-	double vel_e;                          //8 bytes deviation 80
-	double vel_u;                          //8 bytes deviation 88
+	double vel_n_m_s;                          //8 bytes deviation 72
+	double vel_e_m_s;                          //8 bytes deviation 80
+	double vel_u_m_s;                          //8 bytes deviation 88
 	unsigned short int satellites_used;    //2 bytes deviation 96
 	unsigned short int satellites_track;   //2 bytes deviation 98
 	float vel_ned_valid;                   //4 bytes deviation 100
