@@ -66,24 +66,19 @@ GPSDriverRTKZHD::receive(unsigned timeout)
 
 	while (true) {
 
-		int ret = read(buf, sizeof(buf), timeout);
+		int ret = read(buf, sizeof(buf), 20);
 
 		if (ret > 0) {
 			/* first read whatever is left */
-			if (j < ret) {
-				/* pass received bytes to the packet decoder */
-				while (j < ret) {
-					if (parseChar(buf[j], packet) > 0) {
-						handleMessage(packet);
-						return 1;
-					}
-
-					j++;
+			/* pass received bytes to the packet decoder */
+			while (j < ret) {
+				if (parseChar(buf[j++], packet) > 0) {
+					handleMessage(packet);
+					return 1;
 				}
-
-				/* everything is read */
-				j = 0;
 			}
+			/* everything is read */
+			j = 0;
 
 		} else {
 			usleep(20000);
@@ -196,6 +191,7 @@ GPSDriverRTKZHD::handleMessage(gps_rtk_zhd_packet_t &packet)
 	timeinfo.tm_isdst = 0;
 
 	time_t epoch = mktime(&timeinfo);
+	unsigned int milliseconds = (packet.sec_utc % 100) * 10; // ms
 
 	if (epoch > GPS_EPOCH_SECS) {
 		// FMUv2+ boards have a hardware RTC, but GPS helps us to configure it
@@ -204,12 +200,12 @@ GPSDriverRTKZHD::handleMessage(gps_rtk_zhd_packet_t &packet)
 
 		timespec ts{};
 		ts.tv_sec = epoch;
-		ts.tv_nsec = packet.sec_utc * 10 * 1000000ULL;
+		ts.tv_nsec = milliseconds * 1000000ULL;
 
 		setClock(ts);
 
 		_gps_position->time_utc_usec = static_cast<uint64_t>(epoch) * 1000000ULL;
-		_gps_position->time_utc_usec += (packet.sec_utc % 100) * 10 * 1000ULL;
+		_gps_position->time_utc_usec += milliseconds * 1000ULL;
 
 	} else {
 		_gps_position->time_utc_usec = 0;
@@ -217,11 +213,6 @@ GPSDriverRTKZHD::handleMessage(gps_rtk_zhd_packet_t &packet)
 
 	_gps_position->timestamp = gps_absolute_time();
 	_gps_position->timestamp_time_relative = 0;
-
-//	PX4_INFO("UTC_time: %f, month: %d, day: %d",
-//		 (double)packet.time_utc, packet.month_utc, packet.day_utc);
-//	PX4_INFO("vel_ned_valid: %.6f, vel_n: %.6f, vel_e: %.6f, vel_u: %.6f",
-//		 (double)packet.vel_ned_valid, packet.vel_n_m_s, packet.vel_e_m_s, packet.vel_u_m_s);
 }
 
 void
